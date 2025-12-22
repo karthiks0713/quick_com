@@ -261,6 +261,7 @@ app.get('/api/json/:jobId', (req, res) => {
 /**
  * Background scraping function - runs asynchronously
  * This does NOT block the request handler
+ * Uses QuickAPI backend for scraping
  */
 async function scrapeInBackground(jobId, product, location) {
     const job = jobs.get(jobId);
@@ -270,13 +271,42 @@ async function scrapeInBackground(jobId, product, location) {
         job.status = 'processing';
         console.log(`\n${'='.repeat(60)}`);
         console.log(`Job ${jobId}: Scraping "${product}" in "${location}"`);
+        console.log(`Using QuickAPI backend...`);
         console.log(`${'='.repeat(60)}\n`);
 
-        // Lazy import - only when actually needed
-        const { selectLocationAndSearchOnAllWebsites, extractDataFromHtml } = await import('../location-selector-orchestrator.js');
+        // Use QuickAPI backend instead of direct orchestrator call
+        const QUICKAPI_URL = process.env.QUICKAPI_URL || 'http://localhost:3001';
+        
+        console.log(`Job ${jobId}: Calling QuickAPI at ${QUICKAPI_URL}/api/search`);
+        
+        // Call QuickAPI
+        const response = await fetch(`${QUICKAPI_URL}/api/search`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                product,
+                location
+            })
+        });
 
-        // Call the parallel orchestrator function
-        const results = await selectLocationAndSearchOnAllWebsites(product, location);
+        if (!response.ok) {
+            throw new Error(`QuickAPI request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const quickApiResult = await response.json();
+        
+        if (!quickApiResult.success) {
+            throw new Error(quickApiResult.error || quickApiResult.message || 'QuickAPI request failed');
+        }
+
+        console.log(`Job ${jobId}: QuickAPI response received`);
+        console.log(`Job ${jobId}: Execution duration: ${quickApiResult.execution?.duration}`);
+        console.log(`Job ${jobId}: Successful websites: ${quickApiResult.execution?.successful}/${quickApiResult.execution?.totalWebsites}`);
+
+        // Transform QuickAPI results to match existing format
+        const results = quickApiResult.results || [];
         
         // Extract data from HTML
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');

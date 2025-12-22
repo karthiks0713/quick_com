@@ -2,7 +2,7 @@ import { chromium } from 'playwright';
 import * as fs from 'fs';
 
 // Helper to determine if we should run headless
-const isHeadless = process.env.HEADLESS === 'true' || process.env.DOCKER === 'true' || fs.existsSync('/.dockerenv');
+const isHeadless = process.env.HEADLESS === 'true';
 
 /**
  * Unified Location Selector for E-commerce Platforms

@@ -29,7 +29,7 @@ async function selectLocationOnJioMart(locationName, productName = 'tomato') {
     chromeOptions.addArguments('--start-maximized');
   }
   
-  // Docker-specific Chrome arguments
+  // Chrome arguments
   chromeOptions.addArguments('--disable-blink-features=AutomationControlled');
   chromeOptions.addArguments('--disable-dev-shm-usage');
   chromeOptions.addArguments('--no-sandbox');
@@ -37,7 +37,7 @@ async function selectLocationOnJioMart(locationName, productName = 'tomato') {
   chromeOptions.addArguments('--disable-software-rasterizer');
   chromeOptions.addArguments('--window-size=1920,1080');
   
-  // Set Chrome binary path for Docker (if CHROME_BIN is set)
+  // Set Chrome binary path (if CHROME_BIN is set)
   if (process.env.CHROME_BIN) {
     chromeOptions.setChromeBinaryPath(process.env.CHROME_BIN);
     console.log(`Using Chrome binary from: ${process.env.CHROME_BIN}`);
@@ -167,12 +167,43 @@ async function selectLocationOnJioMart(locationName, productName = 'tomato') {
     }
 
     console.log(`Waiting for location modal to open...`);
-    // Wait for the location search input field - verified working selector from MCP
-    // MCP verified: //input[contains(@placeholder, 'Search for area') or contains(@placeholder, 'landmark')]
-    const locationInput = await driver.wait(
-      until.elementLocated(By.xpath("//input[contains(@placeholder, 'Search for area') or contains(@placeholder, 'landmark')]")),
-      10000
-    );
+    await driver.sleep(2000); // Give modal time to open
+    
+    // Try multiple selectors with fallbacks
+    let locationInput = null;
+    const inputSelectors = [
+      "//input[contains(@placeholder, 'Search for area') or contains(@placeholder, 'landmark')]",
+      "//input[contains(@placeholder, 'Search')]",
+      "//input[contains(@placeholder, 'area')]",
+      "//input[contains(@placeholder, 'location')]",
+      "//div[@role='dialog']//input[@type='text']",
+      "//div[@role='dialog']//input",
+      "//*[contains(@class, 'modal')]//input[@type='text']",
+      "//*[contains(@class, 'dialog')]//input[@type='text']",
+      "//input[@type='text' and contains(@class, 'location')]",
+      "//input[@type='text']"
+    ];
+    
+    for (const selector of inputSelectors) {
+      try {
+        locationInput = await driver.wait(
+          until.elementLocated(By.xpath(selector)),
+          5000
+        );
+        const isVisible = await locationInput.isDisplayed();
+        if (isVisible) {
+          console.log(`✓ Found location input using: ${selector.substring(0, 60)}...`);
+          break;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+    
+    if (!locationInput) {
+      throw new Error('Could not find location input field after trying all selectors');
+    }
+    
     await driver.wait(until.elementIsVisible(locationInput), 5000);
 
     console.log(`Typing location: ${locationName}`);
@@ -1047,26 +1078,11 @@ async function selectLocationOnJioMart(locationName, productName = 'tomato') {
       return document.documentElement.outerHTML;
     });
     
-    // Ensure output directory exists
-    const outputDir = 'output';
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-    
-    // Save HTML file
-    const htmlPath = path.join(outputDir, `jiomart-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-search-results.html`);
-    fs.writeFileSync(htmlPath, pageHtml, 'utf8');
-    console.log(`Search results HTML saved: ${htmlPath}`);
-
     // Parse HTML to extract product data
     console.log(`\nExtracting product data from HTML...`);
     const productData = parseJioMartProducts(pageHtml, locationName, productName, productUrlsMap);
     
-    // Save JSON file
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const jsonPath = path.join(outputDir, `jiomart-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.json`);
-    fs.writeFileSync(jsonPath, JSON.stringify(productData, null, 2), 'utf8');
-    console.log(`Product data JSON saved: ${jsonPath}`);
+    // HTML and JSON files are not saved locally (disabled per user request)
     console.log(`Found ${productData.products.length} products`);
 
     console.log(`\n✅ Location "${locationName}" selected and product "${productName}" searched successfully!`);

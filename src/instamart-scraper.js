@@ -39,7 +39,7 @@ const isHeadless = process.env.HEADLESS === 'true';
 function configureChromeOptions() {
   const chromeOptions = new chrome.Options();
   
-  // Set binary path if CHROME_BIN environment variable is set (for Docker)
+  // Set binary path if CHROME_BIN environment variable is set
   if (process.env.CHROME_BIN) {
     chromeOptions.setChromeBinaryPath(process.env.CHROME_BIN);
     console.log(`Using Chrome binary from: ${process.env.CHROME_BIN}`);

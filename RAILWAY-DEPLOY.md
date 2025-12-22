@@ -9,8 +9,7 @@ If you're seeing "Application failed to respond" on Railway, follow these steps:
 1. Go to your Railway project dashboard
 2. Click on your service
 3. Go to **Settings** tab
-4. Check **Dockerfile Path** - it should be: `Dockerfile.scraper-api`
-5. If it's different, change it to `Dockerfile.scraper-api`
+4. Verify your deployment settings are configured correctly
 
 ## Step 2: Check Build Logs
 
@@ -46,10 +45,7 @@ Should return:
 
 Try the minimal test server:
 
-1. Temporarily change `Dockerfile.scraper-api` CMD to:
-   ```dockerfile
-   CMD ["node", "test-server.js"]
-   ```
+1. Temporarily modify your startup command to use `test-server.js`
 
 2. Push and redeploy
 
@@ -58,9 +54,6 @@ Try the minimal test server:
 4. If test-server doesn't work, the issue is in Railway configuration
 
 ## Common Issues
-
-### Issue: Wrong Dockerfile
-- **Fix**: Set Dockerfile Path to `Dockerfile.scraper-api` in Railway settings
 
 ### Issue: Port not set
 - **Fix**: Railway automatically sets PORT, but verify in logs
@@ -73,7 +66,6 @@ Try the minimal test server:
 
 ## Verification Checklist
 
-- [ ] Railway is using `Dockerfile.scraper-api`
 - [ ] Build completes successfully
 - [ ] Logs show "Server started successfully"
 - [ ] `/api/health` endpoint returns 200 OK

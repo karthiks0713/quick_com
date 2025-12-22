@@ -629,7 +629,7 @@ try {
     console.log(`\n${'='.repeat(60)}`);
     console.log(`🚀 Scraper API Server running on http://0.0.0.0:${PORT}`);
     console.log(`📖 API Documentation: http://0.0.0.0:${PORT}/api/info`);
-    console.log(`📡 Listening on all interfaces (0.0.0.0) for Railway/Docker compatibility`);
+    console.log(`📡 Listening on all interfaces (0.0.0.0) for Railway compatibility`);
     console.log(`✅ Server started successfully - ready to accept requests`);
     console.log(`⚡ All endpoints respond instantly - scraping runs in background`);
     console.log(`⏱️  Server listening on port ${PORT}`);

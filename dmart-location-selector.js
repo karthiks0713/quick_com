@@ -705,26 +705,11 @@ async function selectLocationAndSearchOnDmart(locationName, productName = 'potat
     // Get the HTML of the search results page
     const pageHtml = await page.content();
     
-    // Ensure output directory exists
-    const outputDir = 'output';
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-    
-    // Save HTML file
-    const htmlPath = path.join(outputDir, `dmart-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-search-results.html`);
-    fs.writeFileSync(htmlPath, pageHtml, 'utf8');
-    console.log(`Search results HTML saved: ${htmlPath}`);
-
     // Parse HTML to extract product data
     console.log(`\nExtracting product data from HTML...`);
     const productData = parseDmartProducts(pageHtml, locationName, productName, productUrlsMap);
     
-    // Save JSON file
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const jsonPath = path.join(outputDir, `dmart-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.json`);
-    fs.writeFileSync(jsonPath, JSON.stringify(productData, null, 2), 'utf8');
-    console.log(`Product data JSON saved: ${jsonPath}`);
+    // HTML and JSON files are not saved locally (disabled per user request)
     console.log(`Found ${productData.products.length} products`);
 
     console.log(`\nLocation "${locationName}" selected and product "${productName}" searched successfully!`);

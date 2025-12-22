@@ -20,7 +20,16 @@
     "ui": "node scraper-api.js",
     "frontend": "node frontend-server.js",
     "backend": "node scraper-api-server.js",
-    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "quickapi": "node quickapi.js",
+    "quick": "node quickapi.js",
+    "docker:build": "docker build -t quickapi-scraper .",
+    "docker:run": "docker run -d --name quickapi -p 3001:3001 --shm-size=2gb quickapi-scraper",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:stop": "docker stop quickapi || docker-compose stop",
+    "docker:clean": "docker-compose down -v && docker rmi quickapi-scraper || true"
   },
   "keywords": [],
   "author": "",

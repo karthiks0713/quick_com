@@ -89,14 +89,14 @@ async function selectLocationAndSearchOnSwiggy(locationName, productName) {
   // Configure Chrome with stealth options to bypass bot detection
   const chromeOptions = new chrome.Options();
   
-  // Set binary path if CHROME_BIN environment variable is set (for Docker)
+  // Set binary path if CHROME_BIN environment variable is set
   if (process.env.CHROME_BIN) {
     chromeOptions.setChromeBinaryPath(process.env.CHROME_BIN);
   }
   
   // Anti-detection options
-  // Add headless mode if running in Docker
-  if (process.env.DOCKER === 'true' || process.env.HEADLESS === 'true') {
+  // Add headless mode if HEADLESS is set
+  if (process.env.HEADLESS === 'true') {
     chromeOptions.addArguments('--headless=new');
   }
   chromeOptions.addArguments('--disable-blink-features=AutomationControlled');
@@ -844,20 +844,48 @@ async function selectLocationAndSearchOnAllWebsites(productName, locationName) {
   console.log(`${'='.repeat(60)}\n`);
 
   // Phase 2: Run Swiggy Instamart last (after all others complete)
-  // This runs sequentially after parallel tasks complete
+  // This runs sequentially after parallel tasks complete - NO PARALLELISM PATTERN
   console.log(`\n${'='.repeat(60)}`);
   console.log(`🔄 PHASE 2: All previous tasks completed. Now running Swiggy Instamart (last)...`);
   console.log(`${'='.repeat(60)}\n`);
 
-  // Create and run Swiggy task sequentially (after parallel tasks complete)
-  // Java: Thread t4 = new Thread(new Task("Task 4")); t4.start();
-  const swiggyTask = new WebsiteScrapingTask('swiggy', productName, locationName);
-  console.log(`Created ${swiggyTask.getName()}`);
-  console.log(`Starting ${swiggyTask.getName()} (sequential execution)...\n`);
+  // Run Swiggy Instamart directly (no Task pattern, no parallelism)
+  console.log(`Running Swiggy Instamart scraper directly (no parallelism pattern)...`);
+  console.log(`Loading Swiggy Instamart scraper module...`);
+  const { scrapeInstamartProducts } = await import('./instamart-location-selector.js');
+  console.log(`Calling Swiggy Instamart scraper with location: ${locationName}, product: ${productName}...`);
   
-  // Execute Swiggy task (sequential, not parallel)
-  const swiggyResult = await ParallelExecutor.execute(swiggyTask);
-  results.push(swiggyResult);
+  try {
+    // Call scrapeInstamartProducts directly (returns JSON data)
+    const jsonData = await scrapeInstamartProducts(locationName, productName);
+    const pageHtml = JSON.stringify(jsonData, null, 2);
+    
+    console.log(`\n✅ SWIGGY INSTAMART - Process Completed Successfully`);
+    console.log(`Products extracted: ${jsonData.products?.length || 0}`);
+    console.log(`JSON data length: ${pageHtml.length} characters`);
+    console.log(`${'='.repeat(60)}\n`);
+    
+    const swiggyResult = {
+      website: 'swiggy',
+      success: true,
+      html: pageHtml,
+      error: null,
+      jsonData: jsonData
+    };
+    results.push(swiggyResult);
+  } catch (error) {
+    console.error(`\n❌ SWIGGY INSTAMART - Error Occurred`);
+    console.error(`Error: ${error.message}`);
+    console.error(`${'='.repeat(60)}\n`);
+    const swiggyResult = {
+      website: 'swiggy',
+      success: false,
+      html: null,
+      error: error.message,
+      jsonData: null
+    };
+    results.push(swiggyResult);
+  }
 
   // Summary
   console.log(`\n${'='.repeat(60)}`);
@@ -939,56 +967,8 @@ async function main() {
     const fs = fsModule.default || fsModule;
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`SAVING RESULTS`);
-    console.log(`${'='.repeat(60)}\n`);
-    
-    // Ensure output directory exists
-    const pathModule = await import('path');
-    const path = pathModule.default || pathModule;
-    const outputDir = 'output';
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
-    
-    results.forEach(result => {
-      if (result.success) {
-        // Swiggy Instamart returns JSON data, save as JSON file
-        if (result.website === 'swiggy' && result.jsonData) {
-          const jsonPath = path.join(outputDir, `${result.website}-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.json`);
-          fs.writeFileSync(jsonPath, JSON.stringify(result.jsonData, null, 2), 'utf8');
-          console.log(`✅ ${result.website}: JSON saved to ${jsonPath}`);
-        } else if (result.html && typeof result.html === 'string' && result.html.length > 0) {
-          // Other websites return HTML, save as HTML file (only if it's a valid string)
-          const htmlPath = path.join(outputDir, `${result.website}-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.html`);
-          fs.writeFileSync(htmlPath, result.html, 'utf8');
-          console.log(`✅ ${result.website}: HTML saved to ${htmlPath}`);
-        } else {
-          // Some scrapers save their own files, so we skip saving here
-          console.log(`ℹ️  ${result.website}: Files already saved by scraper (skipping duplicate save)`);
-        }
-      }
-    });
-    
-    console.log(`\n${'='.repeat(60)}`);
-    console.log(`EXTRACTING DATA FROM HTML FILES`);
-    console.log(`${'='.repeat(60)}\n`);
-    
-    // Import and run the HTML data selector
-    try {
-      const { extractDataFromAllFiles } = await import('./html-data-selector.js');
-      const extractedData = extractDataFromAllFiles(outputDir);
-      
-      // Save extracted data as JSON
-      if (extractedData && extractedData.length > 0) {
-        const jsonPath = path.join(outputDir, `extracted-data-${timestamp}.json`);
-        fs.writeFileSync(jsonPath, JSON.stringify(extractedData, null, 2), 'utf8');
-        console.log(`\n💾 Extracted data saved to: ${jsonPath}`);
-      }
-    } catch (error) {
-      console.error(`\n⚠️  Error extracting data from HTML files:`, error.message);
-      console.error(`   Continuing without data extraction...`);
-    }
+    // HTML and JSON files are not saved locally (disabled per user request)
+    // Results are returned in memory only
     
     console.log(`\n${'='.repeat(60)}`);
     console.log(`ALL OPERATIONS COMPLETED`);

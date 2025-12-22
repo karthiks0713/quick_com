@@ -1,54 +1,63 @@
 # Dependencies
-node_modules
-npm-debug.log
-package-lock.json
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Output directories
-output
-outputs
+# Output files
+output/
+*.png
+*.html
+*.json
+!package*.json
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (optional - remove if you want docs in image)
+*.md
+!README.md
 
 # Test files
-test
+test/
+tests/
 *.test.js
 *.spec.js
 
-# Documentation
-*.md
-README*.md
-API_USAGE.md
-SCRAPER_API_README.md
-TEST_CASES.md
-
-# Screenshots and HTML files
-*.png
-*.html
-*.jpg
-*.jpeg
-*.gif
-
-# Python files (not needed for Node.js API)
-*.py
-requirements.txt
-__pycache__
-*.pyc
-
-# Git
-.git
-.gitignore
-
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-
-# Docker files (except the one we're using)
-Dockerfile
-Dockerfile.api
-docker-compose.yml
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
 
 # Other
-*.log
-.DS_Store
 .env
 .env.local
+*.log
+coverage/
+.nyc_output/
+
+# Ecom-scout frontend (if not needed)
+ecom-scout-main/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Screenshots and error images
+*-error.png
+*-search-area-not-found.png
+*-no-products-timeout.png

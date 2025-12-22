@@ -8,7 +8,6 @@ This is a **multi-platform e-commerce product scraper and location selector** sy
 - **Multiple API servers** (Node.js Express and Python FastAPI)
 - **Location selection automation** for 5 e-commerce sites
 - **HTML parsing and data extraction** from scraped pages
-- **Docker containerization** for deployment
 
 ---
 
@@ -240,9 +239,6 @@ location/
 ├── api_server.py                   # FastAPI server (port 8000)
 ├── package.json                    # Node.js dependencies
 ├── requirements.txt                # Python dependencies
-├── Dockerfile                      # Docker image for MCP server
-├── Dockerfile.api                  # Docker image for API
-├── docker-compose.yml              # Docker Compose config
 └── [Documentation files]
 ```
 
@@ -279,10 +275,6 @@ location/
 - Job status tracking
 - Instant health checks (Railway-compatible)
 
-### 6. Docker Support
-- Containerized deployment
-- Chrome/Chromium in containers
-- Volume mounting for data persistence
 
 ---
 
@@ -340,11 +332,6 @@ location/
 
 ## 9. Deployment
 
-### Docker
-- `Dockerfile` - MCP server with Chrome
-- `Dockerfile.api` - API server
-- `docker-compose.yml` - Multi-container setup
-
 ### Railway
 - `railway.json` - Railway deployment config
 - `RAILWAY-DEPLOY.md` - Deployment guide
@@ -353,7 +340,6 @@ location/
 ### Environment Variables
 - `PORT` - Server port
 - `NODE_ENV` - Environment (development/production)
-- `DOCKER` - Docker mode flag
 - `HEADLESS` - Headless browser flag
 - `CHROME_BIN` - Chrome binary path
 
@@ -500,7 +486,6 @@ This is a **well-structured, feature-rich e-commerce scraping system** with:
 - Multiple interfaces (CLI, API, MCP)
 - Robust error handling
 - Good documentation
-- Docker support
 
 ⚠️ **Areas for Growth**:
 - Testing coverage

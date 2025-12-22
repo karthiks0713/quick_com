@@ -720,10 +720,6 @@ async function selectLocationOnZepto(locationName, productName = 'Chaas') {
     
     // Step 7: Generate JSON output
     const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0] + 'Z';
-    const outputDir = 'output';
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
-    }
     
     const jsonData = {
       website: "Zepto",
@@ -733,16 +729,8 @@ async function selectLocationOnZepto(locationName, productName = 'Chaas') {
       products: products
     };
     
-    const jsonPath = path.join(outputDir, `zepto-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.json`);
-    fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2), 'utf8');
-    console.log(`✓ JSON data saved: ${jsonPath}`);
+    // HTML and JSON files are not saved locally (disabled per user request)
     console.log(`✓ Total products: ${products.length}`);
-    
-    // Also save HTML for reference
-    const pageHtml = await page.content();
-    const htmlPath = path.join(outputDir, `zepto-${locationName.toLowerCase().replace(/\s+/g, '-')}-${productName.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.html`);
-    fs.writeFileSync(htmlPath, pageHtml, 'utf8');
-    console.log(`✓ HTML saved: ${htmlPath}`);
 
     console.log(`\n✅ Location "${locationName}" selected and products extracted successfully!`);
     console.log(`📄 JSON saved to: ${jsonPath}`);
