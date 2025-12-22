@@ -50,6 +50,7 @@ chromedriver.log
 output/
 outputs/
 *.html
+!quickapi-ui.html
 *.png
 *.jpg
 *.jpeg

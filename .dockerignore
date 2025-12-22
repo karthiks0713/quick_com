@@ -38,8 +38,7 @@ tests/
 *.test.js
 *.spec.js
 
-# Docker files
-Dockerfile*
+# Docker files (keep Dockerfile for build)
 docker-compose*.yml
 .dockerignore
 

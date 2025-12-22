@@ -1,11 +1,11 @@
 # Multi-stage Dockerfile for QuickAPI E-commerce Scraper
-# Use Node.js base image
+# Optimized for faster builds with better caching
 FROM node:20-slim AS app
 
 # Set working directory
 WORKDIR /app
 
-# Install system dependencies for Chrome and Playwright
+# Install all system dependencies in one layer for better caching
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     wget \
@@ -27,42 +27,38 @@ RUN apt-get update && \
     libgbm1 \
     libasound2 \
     libatspi2.0-0 \
-    libxshmfence1 \
-    && rm -rf /var/lib/apt/lists/*
+    libxshmfence1 && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome
+# Install Google Chrome in same layer
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get update && \
     apt-get install -y --no-install-recommends google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy package files
+# Copy package files first for better dependency caching
 COPY package*.json ./
 
-# Install Node.js dependencies
-RUN npm ci
-
-# Install Playwright browsers and dependencies
-RUN npx playwright install chromium && \
+# Install Node.js dependencies and Playwright in one layer
+RUN npm ci --only=production && \
+    npx playwright install chromium && \
     npx playwright install-deps chromium
 
-# Copy application files
+# Copy all application files at once
 COPY *.js ./
+COPY quickapi-ui.html* ./
 
-# Copy UI file
-COPY quickapi-ui.html ./
-
-# Create output directory (even though we don't save files, some scrapers might check for it)
+# Create output directory
 RUN mkdir -p /app/output
 
 # Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3001
-ENV HEADLESS=true
-ENV CHROME_BIN=/usr/bin/google-chrome-stable
-ENV CHROME_PATH=/usr/bin/google-chrome-stable
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+ENV NODE_ENV=production \
+    PORT=3001 \
+    HEADLESS=true \
+    CHROME_BIN=/usr/bin/google-chrome-stable \
+    CHROME_PATH=/usr/bin/google-chrome-stable \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 # Expose API port
 EXPOSE 3001

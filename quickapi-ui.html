@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickAPI - Product Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: grid;
+            gap: 20px;
+        }
+
+        .website-result {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .website-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .website-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            text-transform: capitalize;
+        }
+
+        .website-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .product-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid #e0e0e0;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            padding: 10px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            min-height: 40px;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .price-current {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .price-mrp {
+            font-size: 1rem;
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .price-discount {
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .product-stock {
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .stock-in {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .stock-out {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #dc3545;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .no-products {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .summary {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 QuickAPI</h1>
+            <p>Search products across multiple e-commerce websites</p>
+        </div>
+
+        <div class="search-card">
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="website">Website</label>
+                    <select id="website" name="website">
+                        <option value="all">All Websites</option>
+                        <option value="dmart">D-Mart</option>
+                        <option value="jiomart">JioMart</option>
+                        <option value="naturesbasket">Nature's Basket</option>
+                        <option value="zepto">Zepto</option>
+                        <option value="swiggy">Swiggy Instamart</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="product">Product Name</label>
+                        <input type="text" id="product" name="product" placeholder="e.g., lays, potato, tomato" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" name="location" placeholder="e.g., Mumbai, RT Nagar" required>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary" id="searchBtn">
+                        🔍 Search Products
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="clearBtn">
+                        🗑️ Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>Searching products... This may take 30-60 seconds</p>
+        </div>
+
+        <div id="results" class="results hidden"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3001/api';
+        
+        const searchForm = document.getElementById('searchForm');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        // Form submission
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const website = document.getElementById('website').value;
+            const product = document.getElementById('product').value.trim();
+            const location = document.getElementById('location').value.trim();
+
+            if (!product || !location) {
+                alert('Please enter both product name and location');
+                return;
+            }
+
+            await performSearch(website, product, location);
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            searchForm.reset();
+            results.classList.add('hidden');
+            results.innerHTML = '';
+        });
+
+        async function performSearch(website, product, location) {
+            // Show loading, hide results
+            loading.classList.remove('hidden');
+            results.classList.add('hidden');
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Searching...';
+
+            try {
+                let url, response;
+
+                if (website === 'all') {
+                    // Search all websites
+                    url = `${API_BASE_URL}/search`;
+                } else {
+                    // Search specific website
+                    url = `${API_BASE_URL}/search/${website}`;
+                }
+
+                response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product: product,
+                        location: location
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'Search failed');
+                }
+
+                displayResults(data, website === 'all');
+
+            } catch (error) {
+                console.error('Search error:', error);
+                displayError(error.message);
+            } finally {
+                loading.classList.add('hidden');
+                searchBtn.disabled = false;
+                searchBtn.textContent = '🔍 Search Products';
+            }
+        }
+
+        function displayResults(data, isAllWebsites) {
+            results.classList.remove('hidden');
+            results.innerHTML = '';
+
+            if (isAllWebsites && data.results) {
+                // Display summary for all websites
+                const summary = createSummary(data);
+                results.appendChild(summary);
+
+                // Display results for each website
+                data.results.forEach(result => {
+                    const websiteResult = createWebsiteResult(result);
+                    results.appendChild(websiteResult);
+                });
+            } else if (data.result) {
+                // Single website result
+                const websiteResult = createWebsiteResult(data.result);
+                results.appendChild(websiteResult);
+            }
+        }
+
+        function createSummary(data) {
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'summary';
+
+            const totalProducts = data.results.reduce((sum, r) => {
+                return sum + (r.totalProducts || 0);
+            }, 0);
+
+            summaryDiv.innerHTML = `
+                <h2 style="margin-bottom: 15px; color: #333;">📊 Search Summary</h2>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value">${data.execution.totalWebsites}</div>
+                        <div class="summary-label">Websites</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" style="color: #28a745;">${data.execution.successful}</div>
+                        <div class="summary-label">Successful</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" style="color: #dc3545;">${data.execution.failed}</div>
+                        <div class="summary-label">Failed</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${totalProducts}</div>
+                        <div class="summary-label">Total Products</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${data.execution.duration}</div>
+                        <div class="summary-label">Duration</div>
+                    </div>
+                </div>
+            `;
+
+            return summaryDiv;
+        }
+
+        function createWebsiteResult(result) {
+            const websiteDiv = document.createElement('div');
+            websiteDiv.className = 'website-result';
+
+            const statusClass = result.success ? 'status-success' : 'status-error';
+            const statusText = result.success ? '✓ Success' : '✗ Failed';
+
+            let productsHtml = '';
+            if (result.success && result.products && result.products.length > 0) {
+                productsHtml = `
+                    <div class="products-grid">
+                        ${result.products.map(product => createProductCard(product)).join('')}
+                    </div>
+                `;
+            } else if (result.success) {
+                productsHtml = '<div class="no-products">No products found</div>';
+            }
+
+            websiteDiv.innerHTML = `
+                <div class="website-header">
+                    <div class="website-name">${formatWebsiteName(result.website)}</div>
+                    <div class="website-status ${statusClass}">${statusText}</div>
+                </div>
+                ${result.error ? `<div class="error-message">Error: ${result.error}</div>` : ''}
+                ${result.totalProducts !== undefined ? `
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span>📦 Products:</span>
+                            <strong>${result.totalProducts}</strong>
+                        </div>
+                        ${result.location ? `
+                            <div class="stat-item">
+                                <span>📍 Location:</span>
+                                <strong>${result.location}</strong>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                ${productsHtml}
+            `;
+
+            return websiteDiv;
+        }
+
+        function createProductCard(product) {
+            const discountHtml = product.discount ? 
+                `<span class="price-discount">${product.discount}% OFF</span>` : '';
+
+            const priceHtml = product.price ? 
+                `<div class="price-current">${product.price}</div>` : '';
+
+            const mrpHtml = product.mrp && product.mrp !== product.price ? 
+                `<div class="price-mrp">₹${product.mrp}</div>` : '';
+
+            const stockClass = product.isOutOfStock ? 'stock-out' : 'stock-in';
+            const stockText = product.isOutOfStock ? 'Out of Stock' : 'In Stock';
+
+            return `
+                <div class="product-card">
+                    ${product.imageUrl ? 
+                        `<img src="${product.imageUrl}" alt="${product.name || 'Product'}" class="product-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'%3E%3Crect fill=\\'%23f0f0f0\\' width=\\'200\\' height=\\'200\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%23999\\'%3ENo Image%3C/text%3E%3C/svg%3E'">` : 
+                        `<div class="product-image" style="display: flex; align-items: center; justify-content: center; color: #999;">No Image</div>`
+                    }
+                    <div class="product-name">${product.name || 'Unknown Product'}</div>
+                    <div class="product-price">
+                        ${priceHtml}
+                        ${mrpHtml}
+                        ${discountHtml}
+                    </div>
+                    <div class="product-stock">
+                        <span class="${stockClass}">${stockText}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatWebsiteName(website) {
+            const names = {
+                'dmart': 'D-Mart',
+                'jiomart': 'JioMart',
+                'naturesbasket': "Nature's Basket",
+                'zepto': 'Zepto',
+                'swiggy': 'Swiggy Instamart'
+            };
+            return names[website.toLowerCase()] || website;
+        }
+
+        function displayError(message) {
+            results.classList.remove('hidden');
+            results.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+
+        // Check API health on load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+                console.log('API Health:', data);
+            } catch (error) {
+                console.error('API not available:', error);
+                alert('⚠️ QuickAPI server is not running. Please start it with: npm run quickapi');
+            }
+        });
+    </script>
+</body>
+</html>
+
