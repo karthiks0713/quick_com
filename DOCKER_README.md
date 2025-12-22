@@ -238,3 +238,5 @@ docker exec -it quickapi /bin/bash
 - All data is returned via API responses
 - The container includes all necessary dependencies for Selenium and Playwright
 
+
+
