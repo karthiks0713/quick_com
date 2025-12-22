@@ -8,6 +8,7 @@ yarn-error.log*
 output/
 *.png
 *.html
+!quickapi-ui.html
 *.json
 !package*.json
 
