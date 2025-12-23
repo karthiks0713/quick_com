@@ -173,12 +173,28 @@ function extractProductsEnhanced(htmlContent) {
             p.photo;
           
           if (img) {
+            let imgUrl = null;
             if (typeof img === 'string') {
-              product.image_url = img;
+              imgUrl = img;
             } else if (typeof img === 'object' && img.url) {
-              product.image_url = img.url;
+              imgUrl = img.url;
             } else if (typeof img === 'object' && img.src) {
-              product.image_url = img.src;
+              imgUrl = img.src;
+            }
+            
+            // Normalize image URL to absolute URL
+            if (imgUrl) {
+              if (imgUrl.startsWith('http')) {
+                product.imageUrl = imgUrl;
+              } else if (imgUrl.startsWith('//')) {
+                product.imageUrl = 'https:' + imgUrl;
+              } else if (imgUrl.startsWith('/')) {
+                product.imageUrl = 'https://www.swiggy.com' + imgUrl;
+              } else if (!imgUrl.includes('://')) {
+                product.imageUrl = 'https://www.swiggy.com/' + imgUrl;
+              } else {
+                product.imageUrl = imgUrl;
+              }
             }
           }
 
@@ -329,7 +345,7 @@ function extractProductsEnhanced(htmlContent) {
       if (imgUrl.includes('MARKETING_BANNERS') || imgUrl.includes('OFFERS')) {
         // Skip marketing images
       } else {
-        product.image_url = imgUrl;
+        product.imageUrl = imgUrl;
       }
     }
 
@@ -350,13 +366,13 @@ function extractProductsEnhanced(htmlContent) {
     )
       continue;
 
-    if (products.some((p) => p.image_url === imgUrl)) continue;
+    if (products.some((p) => p.imageUrl === imgUrl)) continue;
 
     const context = htmlContent.slice(
       Math.max(0, imgMatch.index - 1500),
       Math.min(htmlContent.length, imgMatch.index + 2500)
     );
-    const product = { image_url: imgUrl };
+    const product = { imageUrl: imgUrl };
 
     const urlMatch2 = context.match(
       /["']([^"']*instamart\/product[^"']*)["']/i
@@ -1022,11 +1038,11 @@ async function searchAndExtract(driver, productName = 'lays') {
           }
           
           if (imageUrl && imageUrl.startsWith('http')) {
-            product.image_url = imageUrl;
+            product.imageUrl = imageUrl;
           } else if (imageUrl && imageUrl.startsWith('//')) {
-            product.image_url = 'https:' + imageUrl;
+            product.imageUrl = 'https:' + imageUrl;
           } else if (imageUrl && imageUrl.startsWith('/')) {
-            product.image_url = 'https://www.swiggy.com' + imageUrl;
+            product.imageUrl = 'https://www.swiggy.com' + imageUrl;
           }
           
           if (product.url) {

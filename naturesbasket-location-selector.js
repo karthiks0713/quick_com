@@ -838,7 +838,6 @@ async function selectLocationOnNaturesBasket(locationName, productName = 'tomato
     console.log(`✓ Total products: ${products.length}`);
 
     console.log(`\n✅ Location "${locationName}" selected and products extracted successfully!`);
-    console.log(`📄 JSON saved to: ${jsonPath}`);
     
     // Close browser
     await browser.close();

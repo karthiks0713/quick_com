@@ -328,8 +328,8 @@ async function scrapeInBackground(jobId, product, location) {
                             discount: p.discount || null,
                             discountAmount: p.discountAmount || null,
                             isOutOfStock: p.isOutOfStock || false,
-                            imageUrl: p.imageUrl || null,
-                            productUrl: p.productUrl || null
+                            imageUrl: p.imageUrl || p.image_url || null,
+                            productUrl: p.productUrl || p.product_url || p.url || null
                         }))
                     };
                     if (swiggyData.products && swiggyData.products.length > 0) {
